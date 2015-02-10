@@ -1,2 +1,2 @@
 # Alcove
-Dead-simple code coverage reporting for Objective-C
+Painless code coverage reporting for Objective-C
