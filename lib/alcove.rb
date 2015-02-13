@@ -14,14 +14,6 @@ class Alcove
     end
 
     def generate_report
-        build_dir = get_objects_dir(@product_name)
-        if build_dir.length > 0
-            puts "✅  Found build directory: #{build_dir}".green if @verbose
-        else
-            puts "🚫  No build directory found for product name: #{@product_name} ".red
-            exit(1)
-        end
-
         temp_dir = 'alcove-temp'
         # geninfo parameters
         gi_filename = 'alcove-info.temp'
@@ -33,9 +25,10 @@ class Alcove
 
         FileUtils.rm_rf(temp_dir)
         FileUtils.mkdir(temp_dir)
+        copy_input_files(@product_name, temp_dir)
 
         puts '🔍  Generating report...'
-        gen_success = gen_info_files(gi_filename_absolute, build_dir, temp_dir, @product_name)
+        gen_success = gen_info_files(gi_filename_absolute, temp_dir, @product_name)
         if gen_success
             puts '✅  geninfo successful'.green if @verbose
         else
@@ -70,20 +63,20 @@ class Alcove
 
 private
 
-    def get_objects_dir(product_name)
+    def copy_input_files(product_name, temp_dir)
+        # TODO: Need to also search XcodeServer dirs
         xcode_base = File.join(Etc.getpwuid.dir, "/Library/Developer/Xcode/DerivedData")
-        # TODO: This should be more robust.  At the moment, it assumes a lot about the directory structure.
-        Dir.entries(xcode_base).each do |entry|
-            if entry.include?(product_name)
-                return File.join(xcode_base, entry, "Build/Intermediates/#{product_name}.build/Debug-iphonesimulator/#{product_name}.build/Objects-normal/x86_64")
+
+        Find.find(xcode_base) do |path|
+            if path.match(/#{product_name}.*\.gcda\Z/) || path.match(/#{product_name}.*\.gcno\Z/)
+                FileUtils.cp(path, "#{temp_dir}/")
             end
         end
-
-        return ''
     end
 
-    def gen_info_files(filename, build_dir, temp_dir, product_name)
-        gen_info_cmd = "geninfo #{build_dir}/*.gcno --output-filename #{filename}"
+    def gen_info_files(filename, temp_dir, product_name)
+        absolute_temp_dir = File.join(Dir.pwd, temp_dir)
+        gen_info_cmd = "geninfo #{absolute_temp_dir}/*.gcno --output-filename #{filename}"
         gen_info_cmd += ' --quiet' unless @verbose
         return system gen_info_cmd
     end
