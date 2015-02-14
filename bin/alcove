@@ -7,54 +7,54 @@ require 'optparse'
 
 options = OpenStruct.new
 OptionParser.new do |opts|
-    opts.banner = "Usage: alcove --product-name <product-name> [options]"
+  opts.banner = "Usage: alcove --product-name <product-name> [options]"
 
-    opts.on('-h', '--help', 'Displays the help screen') do
-        puts opts
-        exit
-    end
+  opts.on('-h', '--help', 'Displays the help screen') do
+    puts opts
+    exit
+  end
 
-    options.output_directory = 'alcove-report'
-    opts.on('-o', '--output-directory DIR', 'Place report in DIR instead of default') do |o|
-        options.output_directory = o
-    end
+  options.output_directory = 'alcove-report'
+  opts.on('-o', '--output-directory DIR', 'Place report in DIR instead of default') do |o|
+    options.output_directory = o
+  end
 
-    options.product_name = ''
-    opts.on('-p', '--product-name NAME', 'The name of your product') do |p|
-        options.product_name = p
-    end
+  options.product_name = ''
+  opts.on('-p', '--product-name NAME', 'The name of your product') do |p|
+    options.product_name = p
+  end
 
-    options.remove_filter = []
-    opts.on('-r', '--remove-filter X,Y,Z...', ::Array, 'A list of filters (e.g. *.h,main.m)') do |r|
-        options.remove_filter = r
-    end
+  options.remove_filter = []
+  opts.on('-r', '--remove-filter X,Y,Z...', ::Array, 'A list of filters (e.g. *.h,main.m)') do |r|
+    options.remove_filter = r
+  end
 
-    opts.on('-s', '--search-directory DIR', 'Search in DIR for coverage files') do |s|
-        options.search_directory = s
-    end
+  opts.on('-s', '--search-directory DIR', 'Search in DIR for coverage files') do |s|
+    options.search_directory = s
+  end
 
-    options.verbose = false
-    opts.on('-v', '--verbose', 'Output additional information') do
-        options.verbose = true
-    end
+  options.verbose = false
+  opts.on('-v', '--verbose', 'Output additional information') do
+    options.verbose = true
+  end
 
-    opts.on_tail('--version', 'Show version') do
-        puts Alcove::VERSION
-        exit
-    end
+  opts.on_tail('--version', 'Show version') do
+    puts Alcove::VERSION
+    exit
+  end
 
-    begin
-        opts.parse!(ARGV)
-        if options.product_name.length == 0
-            STDERR.puts '--product-name is required'.yellow
-            puts opts
-            exit(1)
-        end
-    rescue OptionParser::InvalidOption => e
-        puts e
-        puts opts
-        exit(1)
+  begin
+    opts.parse!(ARGV)
+    if options.product_name.length == 0
+      STDERR.puts '--product-name is required'.yellow
+      puts opts
+      exit(1)
     end
+  rescue OptionParser::InvalidOption => e
+    puts e
+    puts opts
+    exit(1)
+  end
 end
 
 alcoveOptions = OpenStruct.new
