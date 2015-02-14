@@ -11,6 +11,7 @@ class Alcove
         @product_name = options.product_name
         @remove_filter = options.remove_filter
         @verbose = options.verbose
+        @search_directory = options.search_directory
     end
 
     def generate_report
@@ -23,16 +24,19 @@ class Alcove
         lcov_filename_absolute = File.join(temp_dir, lcov_filename)
         lcov_system_removals = ['*iPhoneSimulator*']
 
+        puts ' 🔍  Generating report...'
+
         FileUtils.rm_rf(temp_dir)
         FileUtils.mkdir(temp_dir)
+
+        puts ' 📦  Gathering .gcno and .gcda files...' if @verbose
         copy_input_files(@product_name, temp_dir)
 
-        puts '🔍  Generating report...'
-        gen_success = gen_info_files(gi_filename_absolute, temp_dir, @product_name)
+        gen_success = gen_info_files(gi_filename_absolute, temp_dir)
         if gen_success
-            puts '✅  geninfo successful'.green if @verbose
+            puts ' ✅  geninfo successful'.green if @verbose
         else
-            puts '🚫  geninfo failed!  Verify value given for --product-name.'.red
+            puts ' 🚫  geninfo failed!'.red
             FileUtils.rm_rf(temp_dir)
             exit(1)
         end
@@ -40,41 +44,52 @@ class Alcove
         lcov_removals = lcov_system_removals + @remove_filter
         lcov_success = lcov(gi_filename_absolute, lcov_removals, lcov_filename_absolute)
         if lcov_success
-            puts '✅  lcov successful'.green if @verbose
+            puts ' ✅  lcov successful'.green if @verbose
         else
-            puts '🚫  lcov failed!'.red
+            puts ' 🚫  lcov failed!'.red
             FileUtils.rm_rf(temp_dir)
             exit(1)
         end
 
         genhtml_success = genhtml(@output_directory, lcov_filename_absolute)
         if genhtml_success
-            puts '✅  Successfully generated report'.green
-            puts "🍻  Open #{@output_directory}/index.html to view the report"
+            puts ''
+            puts ' ✅  Successfully generated report'.green
+            puts " 🍻  Open #{@output_directory}/index.html to view the report"
         else
-            puts '🚫  genhtml failed!'.red
+            puts ' 🚫  genhtml failed!'.red
             FileUtils.rm_rf(temp_dir)
             exit(1)
         end
 
-        # Clean up temporary files
         FileUtils.rm_rf(temp_dir)
     end
 
 private
 
     def copy_input_files(product_name, temp_dir)
-        # TODO: Need to also search XcodeServer dirs
-        xcode_base = File.join(Etc.getpwuid.dir, "/Library/Developer/Xcode/DerivedData")
+        derived_data = ''
+        if @search_directory
+            puts "  Search directory provided." if @verbose
+            derived_data = @search_directory
+        elsif ENV['XCS_SOURCE_DIR']
+            puts "  Xcode Server found." if @verbose
+            derived_data = ENV['XCS_SOURCE_DIR'].sub('Source', 'DerivedData')
+        else
+            puts "  Development machine found." if @verbose
+            derived_data = File.join(Etc.getpwuid.dir, "/Library/Developer/Xcode/DerivedData")
+        end
 
-        Find.find(xcode_base) do |path|
+        puts "  Searching in #{derived_data}..." if @verbose
+        Find.find(derived_data) do |path|
             if path.match(/#{product_name}.*\.gcda\Z/) || path.match(/#{product_name}.*\.gcno\Z/)
+                puts "  👍  .#{path.sub(derived_data, "")}".green if @verbose
                 FileUtils.cp(path, "#{temp_dir}/")
             end
         end
     end
 
-    def gen_info_files(filename, temp_dir, product_name)
+    def gen_info_files(filename, temp_dir)
         absolute_temp_dir = File.join(Dir.pwd, temp_dir)
         gen_info_cmd = "geninfo #{absolute_temp_dir}/*.gcno --output-filename #{filename}"
         gen_info_cmd += ' --quiet' unless @verbose
@@ -90,6 +105,7 @@ private
 
 
     def genhtml(output_directory, lcov_filename)
+        FileUtils.mkpath(output_directory)
         genhtml_cmd = "genhtml --no-function-coverage --no-branch-coverage --output-directory #{output_directory} #{lcov_filename}"
         genhtml_cmd += ' --quiet' unless @verbose
         return system genhtml_cmd

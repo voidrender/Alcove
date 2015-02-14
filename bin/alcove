@@ -29,6 +29,10 @@ OptionParser.new do |opts|
         options.remove_filter = r
     end
 
+    opts.on('-s', '--search-directory DIR', 'Search in DIR for coverage files') do |s|
+        options.search_directory = s
+    end
+
     options.verbose = false
     opts.on('-v', '--verbose', 'Output additional information') do
         options.verbose = true
@@ -54,9 +58,10 @@ OptionParser.new do |opts|
 end
 
 alcoveOptions = OpenStruct.new
-alcoveOptions.product_name = options.product_name
 alcoveOptions.output_directory = options.output_directory
+alcoveOptions.product_name = options.product_name
 alcoveOptions.remove_filter = options.remove_filter
+alcoveOptions.search_directory = options.search_directory
 alcoveOptions.verbose = options.verbose
 
 alcove = Alcove.new(alcoveOptions)
