@@ -53,7 +53,7 @@ class Alcove
 
         genhtml_success = genhtml(@output_directory, lcov_filename_absolute)
         if genhtml_success
-            puts ''
+            puts '' if @verbose
             puts ' ✅  Successfully generated report'.green
             puts " 🍻  Open #{@output_directory}/index.html to view the report"
         else
