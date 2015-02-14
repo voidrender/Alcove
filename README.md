@@ -3,7 +3,7 @@ Painless code coverage reporting for Objective-C projects.   Most of the heavy l
 
 ## Installation
 
-    $ sudo gem install alcove
+    $ gem install alcove
     
 If you don't have it already, you'll also need to install lcov.
 
