@@ -46,7 +46,7 @@ OptionParser.new do |opts|
     begin
         opts.parse!(ARGV)
         if options.product_name.length == 0
-            puts '--product-name is required'.yellow
+            STDERR.puts '--product-name is required'.yellow
             puts opts
             exit(1)
         end
@@ -65,4 +65,4 @@ alcoveOptions.search_directory = options.search_directory
 alcoveOptions.verbose = options.verbose
 
 alcove = Alcove.new(alcoveOptions)
-alcove.generate_report
+alcove.generate_report ? exit(0) : exit(1)

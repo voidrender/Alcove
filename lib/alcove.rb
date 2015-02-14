@@ -12,43 +12,37 @@ class Alcove
         @remove_filter = options.remove_filter
         @verbose = options.verbose
         @search_directory = options.search_directory
+        @temp_dir = 'alcove-temp'
     end
 
     def generate_report
-        temp_dir = 'alcove-temp'
-        # geninfo parameters
-        gi_filename = 'alcove-info.temp'
-        gi_filename_absolute = File.join(temp_dir, gi_filename)
-        # lcov parameters
-        lcov_filename = 'alcove-lcov.info'
-        lcov_filename_absolute = File.join(temp_dir, lcov_filename)
-        lcov_system_removals = ['*iPhoneSimulator*']
-
         puts ' 🔍  Generating report...'
 
-        FileUtils.rm_rf(temp_dir)
-        FileUtils.mkdir(temp_dir)
+        cleanup()
+        FileUtils.mkdir(@temp_dir)
 
         puts ' 📦  Gathering .gcno and .gcda files...' if @verbose
-        copy_input_files(@product_name, temp_dir)
+        copy_input_files(@product_name)
 
-        gen_success = gen_info_files(gi_filename_absolute, temp_dir)
+        gi_filename_absolute = File.join(@temp_dir, 'alcove-info.temp')
+        gen_success = gen_info_files(gi_filename_absolute)
         if gen_success
             puts ' ✅  geninfo successful'.green if @verbose
         else
-            puts ' 🚫  geninfo failed!'.red
-            FileUtils.rm_rf(temp_dir)
-            exit(1)
+            STDERR.puts ' 🚫  geninfo failed!'.red
+            cleanup()
+            return false
         end
 
-        lcov_removals = lcov_system_removals + @remove_filter
+        lcov_removals = @remove_filter + ['*iPhoneSimulator*']
+        lcov_filename_absolute = File.join(@temp_dir, 'alcove-lcov.info')
         lcov_success = lcov(gi_filename_absolute, lcov_removals, lcov_filename_absolute)
         if lcov_success
             puts ' ✅  lcov successful'.green if @verbose
         else
-            puts ' 🚫  lcov failed!'.red
-            FileUtils.rm_rf(temp_dir)
-            exit(1)
+            STDERR.puts ' 🚫  lcov failed!'.red
+            cleanup()
+            return false
         end
 
         genhtml_success = genhtml(@output_directory, lcov_filename_absolute)
@@ -57,17 +51,22 @@ class Alcove
             puts ' ✅  Successfully generated report'.green
             puts " 🍻  Open #{@output_directory}/index.html to view the report"
         else
-            puts ' 🚫  genhtml failed!'.red
-            FileUtils.rm_rf(temp_dir)
-            exit(1)
+            STDERR.puts ' 🚫  genhtml failed!'.red
+            cleanup()
+            return false
         end
 
-        FileUtils.rm_rf(temp_dir)
+        cleanup()
+        return true
     end
 
 private
 
-    def copy_input_files(product_name, temp_dir)
+    def cleanup
+        FileUtils.rm_rf(@temp_dir)
+    end
+
+    def copy_input_files(product_name)
         derived_data = ''
         if @search_directory
             puts "  Search directory provided." if @verbose
@@ -84,13 +83,13 @@ private
         Find.find(derived_data) do |path|
             if path.match(/#{product_name}.*\.gcda\Z/) || path.match(/#{product_name}.*\.gcno\Z/)
                 puts "  👍  .#{path.sub(derived_data, "")}".green if @verbose
-                FileUtils.cp(path, "#{temp_dir}/")
+                FileUtils.cp(path, "#{@temp_dir}/")
             end
         end
     end
 
-    def gen_info_files(filename, temp_dir)
-        absolute_temp_dir = File.join(Dir.pwd, temp_dir)
+    def gen_info_files(filename)
+        absolute_temp_dir = File.join(Dir.pwd, @temp_dir)
         gen_info_cmd = "geninfo #{absolute_temp_dir}/*.gcno --output-filename #{filename}"
         gen_info_cmd += ' --quiet' unless @verbose
         return system gen_info_cmd
