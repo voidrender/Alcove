@@ -40,5 +40,8 @@ A list of filters to use when gathering files for the report.  Use this if you w
 ### --search-directory
 Use this option to specify the directory to be searched for your product.  Alcove plays nicely with the the structure on your development machine, as well as on an Xcode Server, but if you have some funky output directory for your build, you can specify its parent here.
 
+## Demo
+See [AlcoveDemo](https://github.com/ioveracker/AlcoveDemo) for a demo project.
+
 ## Attribution
 Shoutout to [@NateBank](https://github.com/NateBank) for the [name suggestion](https://www.youtube.com/watch?v=j1Q-a5zCmhc).
