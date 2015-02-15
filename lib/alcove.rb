@@ -135,8 +135,8 @@ class Alcove
   #
   # Returns the result of the 'genhtml' command.
   def genhtml(lcov_file_path)
-    FileUtils.mkpath(@output_path)
-    genhtml_cmd = "genhtml --no-function-coverage --no-branch-coverage --output-directory #{@output_path} #{lcov_file_path}"
+    FileUtils.mkpath(@output_directory)
+    genhtml_cmd = "genhtml --no-function-coverage --no-branch-coverage --output-directory #{@output_directory} #{lcov_file_path}"
     genhtml_cmd += ' --quiet' unless @verbose
     return system genhtml_cmd
   end
