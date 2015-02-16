@@ -57,12 +57,53 @@ OptionParser.new do |opts|
   end
 end
 
+def exit_with_code(code)
+  FileUtils.rm_rf(Alcove::TEMP_DIR)
+  exit(code)
+end
+
 alcoveOptions = OpenStruct.new
-alcoveOptions.output_directory = options.output_directory
-alcoveOptions.product_name = options.product_name
-alcoveOptions.remove_filter = options.remove_filter
-alcoveOptions.search_directory = options.search_directory
 alcoveOptions.verbose = options.verbose
 
 alcove = Alcove.new(alcoveOptions)
-alcove.generate_report ? 0 : 1
+puts " 🔍  Generating report..."
+
+FileUtils.rm_rf(Alcove::TEMP_DIR)
+FileUtils.mkdir(Alcove::TEMP_DIR)
+
+if options.search_directory
+  search_directory = options.search_directory
+else
+  search_directory = alcove.determine_search_directory
+end
+alcove.copy_input_files_to_temp(search_directory, options.product_name)
+
+gi_filename_absolute = File.join(Alcove::TEMP_DIR, "alcove-info.temp")
+gen_success = alcove.gen_info_files(gi_filename_absolute)
+if gen_success
+  puts " ✅  geninfo successful".green if options.verbose
+else
+  STDERR.puts " 🚫  geninfo failed!".red
+  exit_with_code(1)
+end
+
+lcov_filename_absolute = File.join(Alcove::TEMP_DIR, "alcove-lcov.info")
+lcov_success = alcove.lcov(gi_filename_absolute, options.remove_filter, lcov_filename_absolute)
+if lcov_success
+  puts " ✅  lcov successful".green if options.verbose
+else
+  STDERR.puts " 🚫  lcov failed!".red
+  exit_with_code(1)
+end
+
+genhtml_success = alcove.genhtml(lcov_filename_absolute, options.output_directory)
+if genhtml_success
+  puts "" if options.verbose
+  puts " ✅  Successfully generated report".green
+  puts " 🍻  Open #{options.output_directory}/index.html to view the report"
+else
+  STDERR.puts " 🚫  genhtml failed!".red
+  exit_with_code(1)
+end
+
+exit_with_code(0)

@@ -6,114 +6,60 @@ require 'ostruct'
 require 'optparse'
 
 class Alcove
+  TEMP_DIR = "alcove-temp"
   # Public: Initializes a new instance.
   def initialize(options)
-    @output_directory = options.output_directory
-    @product_name = options.product_name
-    @remove_filter = options.remove_filter
     @verbose = options.verbose
-    @search_directory = options.search_directory
-    @temp_dir = "alcove-temp"
   end
 
-  # Public: Generates a code coverage report.
-  # Returns true if successful, false otherwise.
-  def generate_report
-    puts " 🔍  Generating report..."
-
-    cleanup
-    FileUtils.mkdir(@temp_dir)
-
-    puts " 📦  Gathering .gcno and .gcda files..." if @verbose
-    copy_input_files(@product_name)
-
-    gi_filename_absolute = File.join(@temp_dir, "alcove-info.temp")
-    gen_success = gen_info_files(gi_filename_absolute)
-    if gen_success
-      puts " ✅  geninfo successful".green if @verbose
-    else
-      STDERR.puts " 🚫  geninfo failed!".red
-      cleanup
-      return false
-    end
-
-    lcov_filename_absolute = File.join(@temp_dir, "alcove-lcov.info")
-    lcov_success = lcov(gi_filename_absolute, @remove_filter, lcov_filename_absolute)
-    if lcov_success
-      puts " ✅  lcov successful".green if @verbose
-    else
-      STDERR.puts " 🚫  lcov failed!".red
-      cleanup
-      return false
-    end
-
-    genhtml_success = genhtml(lcov_filename_absolute)
-    if genhtml_success
-      puts "" if @verbose
-      puts " ✅  Successfully generated report".green
-      puts " 🍻  Open #{@output_directory}/index.html to view the report"
-    else
-      STDERR.puts " 🚫  genhtml failed!".red
-      cleanup
-      return false
-    end
-
-    cleanup
-    return true
-  end
-
-  private
-
-  # Internal: Cleans up the temporary files generated along the way.
-  # Returns nothing.
-  def cleanup
-    FileUtils.rm_rf(@temp_dir)
-  end
-
-  # Internal: Searches for the .gcno and .gcda files required to generate the
-  #   report and copies them into the temp directory.
+  # Public: Determines the directory to use when searching for .gcno and .gcda
+  #   files.
   #
-  # product_name - The product name (${PRODUCT_NAME}) from the Xcode project,
-  #                which will be used to determine what .gcno and .gcda files to
-  #                copy.
-  #
-  # Returns nothing.
-  def copy_input_files(product_name)
-    derived_data = ""
-    if @search_directory
-      puts "  Search directory provided." if @verbose
-      derived_data = @search_directory
-    elsif ENV["XCS_SOURCE_DIR"]
+  # Returns the directory to search.
+  def determine_search_directory
+    if ENV["XCS_SOURCE_DIR"]
       puts "  Xcode Server found." if @verbose
-      derived_data = ENV["XCS_SOURCE_DIR"].sub("Source", "DerivedData")
+      ENV["XCS_SOURCE_DIR"].sub("Source", "DerivedData")
     else
       puts "  Development machine found." if @verbose
-      derived_data = File.join(Etc.getpwuid.dir, "/Library/Developer/Xcode/DerivedData")
+      File.join(Etc.getpwuid.dir, "/Library/Developer/Xcode/DerivedData")
     end
+  end
 
-    puts "  Searching in #{derived_data}..." if @verbose
-    Find.find(derived_data) do |path|
+  # Public: Searches for the .gcno and .gcda files required to generate the
+  #   report and copies them into the temp directory.
+  #
+  # search_directory - The directory to search for .gcno and .gcda files.
+  # product_name     - The product name (${PRODUCT_NAME}) from the Xcode
+  #                    project, which will be used to determine what .gcno and
+  #                    .gcda files to copy.
+  #
+  # Returns nothing.
+  def copy_input_files_to_temp(search_directory, product_name)
+    puts " 📦  Gathering .gcno and .gcda files..." if @verbose
+    puts "  Searching in #{search_directory}..." if @verbose
+    Find.find(search_directory) do |path|
       if path.match(/#{product_name}.*\.gcda\Z/) || path.match(/#{product_name}.*\.gcno\Z/)
-        puts "  👍  .#{path.sub(derived_data, "")}".green if @verbose
-        FileUtils.cp(path, "#{@temp_dir}/")
+        puts "  👍  .#{path.sub(search_directory, "")}".green if @verbose
+        FileUtils.cp(path, "#{Alcove::TEMP_DIR}/")
       end
     end
   end
 
-  # Internal: Calls the geninfo command to generate information files for
+  # Public: Calls the geninfo command to generate information files for
   #   lcov to process.
   #
   # filename - The name of the file to be created by geninfo.
   #
   # Returns the result of the geninfo command.
   def gen_info_files(filename)
-    absolute_temp_dir = File.join(Dir.pwd, @temp_dir)
+    absolute_temp_dir = File.join(Dir.pwd, Alcove::TEMP_DIR)
     gen_info_cmd = "geninfo #{absolute_temp_dir}/*.gcno --output-filename #{filename}"
     gen_info_cmd << " --quiet" unless @verbose
     system gen_info_cmd
   end
 
-  # Internal: Calls the lcov command to generate coverage information files.
+  # Public: Calls the lcov command to generate coverage information files.
   #
   # info_filename       - The name of the file generated by geninfo
   # filenames_to_remove - An array of filters to remove from the report.
@@ -127,15 +73,16 @@ class Alcove
     system lcov_cmd
   end
 
-  # Internal: Calls the genhtml command to generate an HTML report from the
+  # Public: Calls the genhtml command to generate an HTML report from the
   #   lcov information file.
   #
   # lcov_file_path    - The path to the file generated by lcov.
+  # output_directory  - The directory where output files should be placed.
   #
   # Returns the result of the genhtml command.
-  def genhtml(lcov_file_path)
-    FileUtils.mkpath(@output_directory)
-    genhtml_cmd = "genhtml --no-function-coverage --no-branch-coverage --output-directory #{@output_directory} #{lcov_file_path}"
+  def genhtml(lcov_file_path, output_directory)
+    FileUtils.mkpath(output_directory)
+    genhtml_cmd = "genhtml --no-function-coverage --no-branch-coverage --output-directory #{output_directory} #{lcov_file_path}"
     genhtml_cmd << " --quiet" unless @verbose
     system genhtml_cmd
   end
