@@ -16,7 +16,7 @@ class Alcove
   #   files.
   #
   # Returns the directory to search.
-  def determine_search_directory
+  def get_search_directory
     if ENV["XCS_SOURCE_DIR"]
       puts "  Xcode Server found." if @verbose
       ENV["XCS_SOURCE_DIR"].sub("Source", "DerivedData")

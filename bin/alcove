@@ -74,7 +74,7 @@ FileUtils.mkdir(Alcove::TEMP_DIR)
 if options.search_directory
   search_directory = options.search_directory
 else
-  search_directory = alcove.determine_search_directory
+  search_directory = alcove.get_search_directory
 end
 alcove.copy_input_files_to_temp(search_directory, options.product_name)
 
