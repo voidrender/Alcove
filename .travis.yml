@@ -2,4 +2,4 @@ language: ruby
 cache: bundler
 rvm:
     - 2.0.0
-script: rake ci
+script: bundle exec rake ci
