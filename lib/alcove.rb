@@ -1,4 +1,3 @@
-require 'bundler/setup'
 require 'colored'
 require 'etc'
 require 'find'
