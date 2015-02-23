@@ -19,4 +19,28 @@ class TestAlcove < MiniTest::Test
     assert_equal("XcodeServer/DerivedData", search_directory)
   end
 
+  def test_extract_percent_from_summary_empty
+    summary = ""
+    percent = @alcove.extract_percent_from_summary(summary)
+    assert_equal(0, percent)
+  end
+
+  def test_extract_percent_from_summary_without_lines
+    summary = "This is a garbage string"
+    percent = @alcove.extract_percent_from_summary(summary)
+    assert_equal(0, percent)
+  end
+
+  def test_extract_percent_from_summary_less_than_100
+    summary = "Reading tracefile alcove-temp/alcove-info.temp\nSummary coverage rate:\n  lines......: 60.5% (3302 of 5457 lines)\n  functions..: 62.2% (906 of 1456 functions)\n  branches...: no data found"
+    percent = @alcove.extract_percent_from_summary(summary)
+    assert_equal(60.5, percent)
+  end
+
+  def test_extract_percent_from_summary_100
+    summary = "Reading tracefile alcove-temp/alcove-info.temp\nSummary coverage rate:\n  lines......: 100.0% (3302 of 5457 lines)\n  functions..: 62.2% (906 of 1456 functions)\n  branches...: no data found"
+    percent = @alcove.extract_percent_from_summary(summary)
+    assert_equal(100.0, percent)
+  end
+
 end

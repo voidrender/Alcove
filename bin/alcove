@@ -19,6 +19,10 @@ OptionParser.new do |opts|
     options.output_directory = o
   end
 
+  opts.on("--percent-file", "Generate a file containing coverage percent") do |p|
+    options.generate_percent_file = true
+  end
+
   options.product_name = ""
   opts.on("-p", "--product-name NAME", "The name of your product") do |p|
     options.product_name = p
@@ -96,14 +100,32 @@ else
   exit_with_code(1)
 end
 
-genhtml_success = alcove.genhtml(lcov_filename_absolute, options.output_directory)
+genhtml_success, coverage_percent = alcove.genhtml(lcov_filename_absolute, options.output_directory)
 if genhtml_success
   puts "" if options.verbose
   puts " ✅  Successfully generated report".green
+
+  coverage_string = " 📊  Line coverage: #{coverage_percent}%"
+  if coverage_percent < 50
+    puts coverage_string.red
+  elsif coverage_percent < 85
+    puts coverage_string.yellow
+  else
+    puts coverage_string.green
+  end
+
   puts " 🍻  Open #{options.output_directory}/index.html to view the report"
+
 else
   STDERR.puts " 🚫  genhtml failed!".red
   exit_with_code(1)
+end
+
+if options.generate_percent_file
+  File.open("#{options.output_directory}/alcove-percent.txt", 'w') {|f|
+    f.write(coverage_percent)
+  }
+
 end
 
 exit_with_code(0)

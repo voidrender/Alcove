@@ -4,6 +4,7 @@ require 'find'
 require 'fileutils'
 require 'ostruct'
 require 'optparse'
+require 'open3'
 
 class Alcove
   TEMP_DIR = "alcove-temp"
@@ -83,7 +84,18 @@ class Alcove
   def genhtml(lcov_file_path, output_directory)
     FileUtils.mkpath(output_directory)
     genhtml_cmd = "genhtml --no-function-coverage --no-branch-coverage --output-directory #{output_directory} #{lcov_file_path}"
-    genhtml_cmd << " --quiet" unless @verbose
-    system genhtml_cmd
+
+    stdout, stderr, exit_status = Open3.capture3(genhtml_cmd)
+    puts stdout if @verbose
+    summary_string = extract_percent_from_summary(stdout)
+
+    return exit_status.success?, summary_string
+  end
+
+  # Public: Extracts the percentage from the lcov summary string.
+  #
+  # summary - The summary string output by lcov or genhtml
+  def extract_percent_from_summary(summary)
+    summary[/lines.*: (.*)%/, 1].to_f
   end
 end
