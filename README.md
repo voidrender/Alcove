@@ -4,19 +4,19 @@ Painless code coverage reporting for Objective-C projects.   Most of the heavy l
 ## Installation
 
     $ gem install alcove
-    
-If you don't have it already, you'll also need to install lcov.
 
-*Homebrew*
+You'll also need to install lcov.
+
+With *Homebrew*:
 
     $ brew install lcov
 
-*MacPorts*
+Or with *MacPorts*:
 
     $ sudo port install lcov
 
 ## Xcode Project Configuration
-If you haven't already, open your project in Xcode and update your non-test targets to Generate Test Coverage Files and Instrument Program Flow (*for Debug configuration only*).
+Open your project in Xcode and update your non-test targets to Generate Test Coverage Files and Instrument Program Flow (*for Debug configuration only*).
 ![Xcode](http://i.imgur.com/xdcg4er.png?1)
 
 ## Generating Reports
@@ -24,12 +24,13 @@ Now that you have the prerequisites out of the way, you can generate a report.  
 
     alcove --product-name <your-product-name>
 
-Be sure to check out the --help for additional options for fine-tuning your report.
-
 ## Options
 
 ### --output-directory
 Specify this option to change the output directory for the report.  Any intermediate paths will be created.
+
+### --percent-file
+Generates a plaintext file `alcove-percent.txt` in the output directory, containing only the line coverage percentage.
 
 ### --product-name
 The product name specified in your Xcode project.
@@ -40,5 +41,8 @@ A list of filters to use when gathering files for the report.  Use this if you w
 ### --search-directory
 Use this option to specify the directory to be searched for your product.  Alcove plays nicely with the the structure on your development machine, as well as on an Xcode Server, but if you have some funky output directory for your build, you can specify its parent here.
 
-## Attribution
-Shoutout to [@NateBank](https://github.com/NateBank) for the [name suggestion](https://www.youtube.com/watch?v=j1Q-a5zCmhc).
+## Troubleshooting
+If something doesn't seem quite right, try cleaning the build folder and then run the tests again.  Make sure you can generate a report for the [demo project](https://github.com/ioveracker/AlcoveDemo), too.
+
+## Thanks
+Shoutout to [@NateBank](https://github.com/NateBank) for the [name suggestion](https://www.youtube.com/watch?v=j1Q-a5zCmhc) and inspiration.
