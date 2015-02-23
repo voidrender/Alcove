@@ -8,6 +8,7 @@ class TestAlcove < MiniTest::Test
   end
 
   def test_get_search_directory_dev
+    ENV["XCS_SOURCE_DIR"] = nil
     search_directory = @alcove.get_search_directory
     assert_equal(File.join(Etc.getpwuid.dir, "/Library/Developer/Xcode/DerivedData"), search_directory)
   end
