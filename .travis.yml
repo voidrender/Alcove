@@ -1,5 +1,13 @@
 language: ruby
 cache: bundler
 rvm:
-    - 2.0.0
+- 2.0.0
 script: bundle exec rake ci
+deploy:
+  provider: rubygems
+  api_key:
+    secure: QQevlWTpIwUsCHZf2kAbBc6YjedIV+T5IBvvNRnU5Uj/u+gbmpwtYqHuS0SYPGlAiCQFld7FpJ1K20FAsygUZqQaQqr8L85d++0qvaDqTmXm7OgLX4Q1ZxVYgCDA3MnDUY/oLnWmcQ7FwcvQH4yceuNXkBKLRm+OW4c2USvGNDk=
+  gem: Alcove
+  on:
+    repo: ioveracker/Alcove
+    all_branches: true
