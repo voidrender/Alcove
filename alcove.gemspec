@@ -3,7 +3,7 @@ Gem::Specification.new do |s|
   s.name        = 'alcove'
   s.version     = Alcove::VERSION
   s.version     = "#{s.version}-alpha-#{ENV['TRAVIS_BUILD_NUMBER']}" if ENV['TRAVIS']
-  s.date        = '2015-02-10'
+  s.date        = Date.today.to_s
   s.summary     = "Painless code coverage reporting for Objective-C."
   s.description = "Painless code coverage reporting for Xcode projects written in Objective-C."
   s.authors     = ['Isaac Overacker']
