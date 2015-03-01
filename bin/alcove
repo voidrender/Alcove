@@ -80,7 +80,10 @@ if options.search_directory
 else
   search_directory = alcove.get_search_directory
 end
-alcove.copy_input_files_to_temp(search_directory, options.product_name)
+unless alcove.copy_input_files_to_temp(search_directory, options.product_name)
+  STDERR.puts " 🚫  Failed to find files to process.  Make sure that --product-name is correct and that you've recently run tests.  (Searched for files related to #{options.product_name} in #{search_directory}.)".red
+  exit_with_code(1)
+end
 
 gi_filename_absolute = File.join(Alcove::TEMP_DIR, "alcove-info.temp")
 gen_success = alcove.gen_info_files(gi_filename_absolute)

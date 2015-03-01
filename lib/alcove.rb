@@ -39,12 +39,15 @@ class Alcove
   def copy_input_files_to_temp(search_directory, product_name)
     puts " 📦  Gathering .gcno and .gcda files..." if @verbose
     puts "  Searching in #{search_directory}..." if @verbose
+    found_files = false
     Find.find(search_directory) do |path|
       if path.match(/#{product_name}.*\.gcda\Z/) || path.match(/#{product_name}.*\.gcno\Z/)
+        found_files = true
         puts "  👍  .#{path.sub(search_directory, "")}".green if @verbose
         FileUtils.cp(path, "#{Alcove::TEMP_DIR}/")
       end
     end
+    return found_files
   end
 
   # Public: Calls the geninfo command to generate information files for
@@ -87,8 +90,8 @@ class Alcove
 
     stdout, stderr, exit_status = Open3.capture3(genhtml_cmd)
     puts stdout if @verbose
+    puts stderr if stderr.length > 0
     summary_string = extract_percent_from_summary(stdout)
-
     return exit_status.success?, summary_string
   end
 
