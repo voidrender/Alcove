@@ -1,5 +1,5 @@
 # Alcove [![Gem Version](https://badge.fury.io/rb/alcove.svg)](http://badge.fury.io/rb/alcove) [![Build Status](https://travis-ci.org/ioveracker/Alcove.svg?branch=master)](https://travis-ci.org/ioveracker/Alcove) [![Code Climate](https://codeclimate.com/github/ioveracker/Alcove/badges/gpa.svg)](https://codeclimate.com/github/ioveracker/Alcove) [![Test Coverage](https://codeclimate.com/github/ioveracker/Alcove/badges/coverage.svg)](https://codeclimate.com/github/ioveracker/Alcove)
-Painless code coverage reporting for Objective-C projects.   Most of the heavy lifting is done by the venerable lcov.  Alcove simply searches the nooks and crannies to collect the data needed to generate the report and ties everything together for you.  Best of all, it's a gem with minimal depedencies, so installation is quick and painless.
+Painless code coverage reporting for Objective-C projects.   Most of the heavy lifting is done by the venerable lcov.  Alcove simply searches the nooks and crannies to collect the data needed to generate the report and ties everything together for you.  Best of all, it's a gem with minimal dependencies, so installation is quick and painless.
 
 ## Installation
 
