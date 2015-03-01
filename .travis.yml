@@ -11,3 +11,4 @@ deploy:
   on:
     repo: ioveracker/Alcove
     all_branches: true
+    tags: true
