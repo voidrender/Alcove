@@ -37,11 +37,12 @@ class Alcove
   #
   # Returns nothing.
   def copy_input_files_to_temp(search_directory, product_name)
+    build_path = "/Intermediates/#{product_name}.build/"
     puts " 📦  Gathering .gcno and .gcda files..." if @verbose
-    puts "  Searching in #{search_directory}..." if @verbose
+    puts "  Searching in #{search_directory} for #{build_path}..." if @verbose
     found_files = false
     Find.find(search_directory) do |path|
-      if path.match(/#{product_name}.*\.gcda\Z/) || path.match(/#{product_name}.*\.gcno\Z/)
+      if path.match(/#{build_path}.*\.gcda\Z/) || path.match(/#{build_path}.*\.gcno\Z/)
         found_files = true
         puts "  👍  .#{path.sub(search_directory, "")}".green if @verbose
         FileUtils.cp(path, "#{Alcove::TEMP_DIR}/")
